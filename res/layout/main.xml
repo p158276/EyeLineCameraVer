@@ -1,0 +1,59 @@
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/AbsoluteLayout1"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+   
+<!--     <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="601dp"
+        android:layout_height="625dp"
+        android:layout_x="150dp"
+        android:layout_y="52dp"        
+        android:src="@drawable/ic_action_search" /> -->
+        
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+    
+    <SurfaceView
+        android:id="@+id/surfaceView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="0dp"
+        android:layout_y="0dp" />
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="128dp"
+        android:layout_height="94dp"
+        android:layout_x="2dp"
+        android:layout_y="344dp"
+        android:text="@string/preview" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="112dp"
+        android:layout_height="81dp"
+        android:layout_x="17dp"
+        android:layout_y="525dp"
+        android:text="@string/snapshot" />
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="0dp"
+        android:layout_y="0dp"
+        android:src="@drawable/ic_action_search" />
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="112dp"
+        android:layout_height="81dp"
+        android:layout_x="50dp"
+        android:layout_y="525dp"
+        android:text="@string/snapshot" />
+
+</AbsoluteLayout>
