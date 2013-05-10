@@ -81,6 +81,7 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
     	System.loadLibrary("main");//Load the C code
     }
 	protected static final int GUIUPDATE_SETFACE = 999;
+	protected static final Bitmap NULL = null;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -114,6 +115,7 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 				// TODO Auto-generated method stub
 				if(usetime>0)
 				{
+					mImageView01.setImageBitmap(NULL);
 					draw.recycle();
 					draw = null;
 					usetime=0;
