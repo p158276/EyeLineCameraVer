@@ -9,8 +9,10 @@ package cliu.TutorialOnFaceDetect;
  */
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import android.annotation.SuppressLint;
@@ -31,6 +33,7 @@ import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.media.FaceDetector;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
@@ -59,8 +62,7 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 	private boolean bIfPreview = false;
 	//private String strCapatureFilePath = "/sdcard/camera_snap.png";
 	private MyImageView mIV;
-	private Bitmap mFaceBitmap;
-	public Bitmap draw;
+	public Bitmap mFaceBitmap,draw,bm,resizedBMP;
 	private int mFaceWidth = 200;
 	private int mFaceHeight = 200;
 	private static final int MAX_FACES = 10;
@@ -76,6 +78,14 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 	public double startTime,endTime,totTime;
 	public Canvas canvasTemp;
 	public Paint p;
+	SimpleDateFormat sDateFormat = new
+	SimpleDateFormat("yyyyMMdd_hhmmss");
+	String date = sDateFormat.format(new java.util.Date());
+	private String SDcardPath = "/mnt/sdcard/Eyeline/";
+	private String strFilePath = SDcardPath+"Result/camera_result_"+date+".jpg";
+	private String strcompressFilePath = SDcardPath+"CompressedInput/camera_compress_"+date+".jpg";
+    private boolean exist=true;
+	FileOutputStream fos;
     static
     {
     	System.loadLibrary("main");//Load the C code
@@ -85,6 +95,7 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);       
@@ -92,6 +103,26 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 		if(!checkSDCard())
 		{
 			mMakeTextToast(getResources().getText(R.string.str_err_nosd).toString(),true);
+		}
+//		Check the SD card is available
+		if (Environment.getExternalStorageState()
+				.equals(Environment.MEDIA_MOUNTED))
+		{
+			File sdFile = android.os.Environment.getExternalStorageDirectory();
+			
+
+			String folderRes = SDcardPath + File.separator + "Result";
+			File dirFile = new File(folderRes);
+
+			if(!dirFile.exists()){//如果資料夾不存在
+				dirFile.mkdir();//建立資料夾
+			}
+			String folderComIn = SDcardPath + File.separator + "CompressedInput";
+			File dirFile2 = new File(folderComIn);
+
+			if(!dirFile2.exists()){//如果資料夾不存在
+				dirFile2.mkdir();//建立資料夾
+			}		
 		}
 		DisplayMetrics dm = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -115,6 +146,11 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 				// TODO Auto-generated method stub
 				if(usetime>0)
 				{
+					date = sDateFormat.format(new java.util.Date());
+					strFilePath = SDcardPath+"Result/camera_result_"+date+".jpg";
+					strcompressFilePath = SDcardPath+"CompressedInput/camera_compress_"+date+".jpg";
+					Log.e(TAG,"file name "+strFilePath);
+					Log.e(TAG,"file name "+strcompressFilePath);					
 					mImageView01.setImageBitmap(NULL);
 					draw.recycle();
 					draw = null;
@@ -438,25 +474,53 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 			{
 				// load the photo			
 		        BitmapFactory.Options opt = new BitmapFactory.Options();
-		        opt.inPreferredConfig = Bitmap.Config.ARGB_8888;
-		        Bitmap bm = BitmapFactory.decodeByteArray(_data, 0, _data.length,opt);
+		        //opt.inPreferredConfig = Bitmap.Config.ARGB_8888;
+//		    	Load the photo
+		        opt.inPreferredConfig = Bitmap.Config.ARGB_8888;	//	Preload to preventv it out of memory.
+		        //opt.inJustDecodeBounds = true;
+		        //BitmapFactory.decodeByteArray(_data, 0, _data.length,opt);
+		        //opt.inSampleSize = computeSampleSize(opt, -1, 1600*1200);	//	If it out of memory.Resize it under 1600*1200.
+		        //opt.inJustDecodeBounds = false;
+		        bm = BitmapFactory.decodeByteArray(_data, 0, _data.length,opt);
 		       // Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.camera_snap,opt);
 		        //set final size
 		        int w = bm.getWidth();
 		        int h = bm.getHeight();
-		        int destWidth = 1200;
-		        int destHeigth = 900;
-		        float scaleWidth = ((float) destWidth) / w;
-		        float scaleHeight = ((float) destHeigth) / h;
+		        int destWidth=1200;
+	            int destHeigth=900;
+	            /*if(w>h)
+	            {
+	            	destWidth = w;
+	                destHeigth = destWidth*3/4;
+	            }else
+	            {
+	            	destWidth = h*3/4;
+	                destHeigth = h;       	
+	            }*/
+	            float scaleWidth = ((float) destWidth) / w;
+	            float scaleHeight = ((float) destHeigth) / h;
 		      //set resize
 				startTime = System.currentTimeMillis();
 				Matrix mtx = new Matrix();
 				mtx.setRotate(90);
 		        mtx.postScale(scaleWidth, scaleHeight);
 		        mtx.postScale(-1, 1);
-		        Bitmap resizedBMP = Bitmap.createBitmap(bm, 0, 0, w, h, mtx, true);
+		        resizedBMP = Bitmap.createBitmap(bm, 0, 0, w, h, mtx, true);
 				draw=resizedBMP.copy(Bitmap.Config.ARGB_8888, true);
+	    		try {
+	    			//	save the picture of Compressed picture
+	    			fos = new FileOutputStream(strcompressFilePath);
+	    	    	draw.compress( Bitmap.CompressFormat.JPEG, 100, fos );
+	    	    	fos.close();
+	    		} catch (FileNotFoundException e) {
+	    			// TODO Auto-generated catch block
+	    			e.printStackTrace();
+	    		} catch (IOException e) {
+	    			// TODO Auto-generated catch block
+	    			e.printStackTrace();
+	    		}     				
 				mFaceBitmap = resizedBMP.copy(Bitmap.Config.RGB_565, true);
+				resizedBMP.recycle();
 				endTime = System.currentTimeMillis();
 				totTime = endTime - startTime;
 				Log.e(TAG,"bmp copy time="+totTime/1000+"sec");
@@ -466,7 +530,6 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 				draw.getPixels(pixels, 0, mFaceWidth, 0, 0, mFaceWidth, mFaceHeight);
 				// perform face detection in setFace() in a background thread	
 				canvasTemp =  new  Canvas(draw);
-				//doLengthyCalc();
 				startTime = System.currentTimeMillis();
 				setFace();
 				endTime = System.currentTimeMillis();
@@ -481,9 +544,6 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 		        mFaceBitmap=null;
 				resetCamera();
 				usetime++;
-		        ////For SD saving
-				//BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(myCaptureFile));
-				//bm.compress(Bitmap.CompressFormat.PNG, 100, bos);
 				bm.recycle();
 				resizedBMP = null;
 				//bm.recycle();
@@ -498,6 +558,17 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 			}
 			double totalendTime = System.currentTimeMillis();
 			Log.e(TAG,"total execute time="+(totalendTime-totalstartTime)/1000+"sec");
+			try {
+				fos = new FileOutputStream(strFilePath);
+		    	draw.compress( Bitmap.CompressFormat.JPEG, 100, fos );
+		    	fos.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	};	
 	private void delFile(String strFileName)
@@ -559,4 +630,46 @@ public class TutorialOnFaceDetect extends Activity implements SurfaceHolder.Call
 		}
 		Log.i(TAG, "Surface Destroyed");	
 	}
+	public static int computeSampleSize(BitmapFactory.Options options,
+	        int minSideLength, int maxNumOfPixels) {
+	    int initialSize = computeInitialSampleSize(options, minSideLength,
+	            maxNumOfPixels);
+	 
+	    int roundedSize;
+	    if (initialSize <= 8) {
+	        roundedSize = 1;
+	        while (roundedSize < initialSize) {
+	            roundedSize <<= 1;
+	        }
+	    } else {
+	        roundedSize = (initialSize + 7) / 8 * 8;
+	    }
+	 
+	    return roundedSize;
+	}
+	 
+	private static int computeInitialSampleSize(BitmapFactory.Options options,
+	        int minSideLength, int maxNumOfPixels) {
+	    double w = options.outWidth;
+	    double h = options.outHeight;
+	 
+	    int lowerBound = (maxNumOfPixels == -1) ? 1 :
+	            (int) Math.ceil(Math.sqrt(w * h / maxNumOfPixels));
+	    int upperBound = (minSideLength == -1) ? 128 :
+	            (int) Math.min(Math.floor(w / minSideLength),
+	            Math.floor(h / minSideLength));
+	 
+	    if (upperBound < lowerBound) {
+	        return lowerBound;
+	    }
+	 
+	    if ((maxNumOfPixels == -1) &&
+	            (minSideLength == -1)) {
+	        return 1;
+	    } else if (minSideLength == -1) {
+	        return lowerBound;
+	    } else {
+	        return upperBound;
+	    }
+	}   
 }
